@@ -10,19 +10,30 @@
 
 <body>
     <div>
-        <p>offer</p>
-        <input type='text' id='offerAndCandidatesState' readonly />
-        <p>answer</p>
-        <input type='text' id='answerAndCandidatesState' readonly />
+        <div style="display: flex">
+            <div style="flex: 2">
+                <p>offer</p>
+                <textarea rows="6" id='offerAndCandidatesState' readonly></textarea>
+            </div>
+            <div style="flex: 2">
+                <p>answer</p>
+                <textarea rows="6" id='answerAndCandidatesState' readonly></textarea>
+            </div>
+        </div>
+        <div style="display: flex">
+            <div style="flex: 2">
+                <p>accept offer</p>
+                <textarea rows="6" id='offerAndCandidatesStatePeer'></textarea>
+                <br /><button id='acceptOffer'>accept offer</button>
+            </div>
+            <div style="flex: 2">
+                <p>accept answer</p>
+                <textarea rows="6" id='answerAndCandidatesStatePeer'></textarea>
+                <br /><button id='acceptAnswer'>accept answer</button>
+            </div>
+        </div>
 
-        <p>accept offer</p>
-        <input type='text' id='offerAndCandidatesStatePeer' />
-        <button id='acceptOffer'>accept offer</button>
-        <p>accept answer</p>
-        <input type='text' id='answerAndCandidatesStatePeer' />
-        <button id='acceptAnswer'>accept answer</button>
-
-        <br /><br />
+        <br />
         <video style='border: 1px solid blueviolet' id='peerMedia' autoplay />
 
     </div>
@@ -139,10 +150,12 @@
             async getUserAudio() {
                 try {
                     const stream = await navigator.mediaDevices
-                        .getUserMedia({ audio: {
-                            echoCancellation: true,
-                            noiseSuppression: true
-                        }, video: false })
+                        .getUserMedia({
+                            audio: {
+                                echoCancellation: true,
+                                noiseSuppression: true
+                            }, video: false
+                        })
 
                     return stream.getAudioTracks()[0]
                 } catch (err) {
@@ -176,7 +189,7 @@
 
             // output
             const peerMediaElement = document.getElementById('peerMedia')
-            
+
             const p2pApp = new P2pApp()
             peerMediaElement.srcObject = p2pApp.peerMedia
 
