@@ -57,9 +57,9 @@
             }
 
             async startup() {
-                const userAudio = await this.getUserAudio()
+                // const userAudio = await this.getUserAudio()
                 const userVideo = await this.getUserVideo()
-                this.userStream = new MediaStream([userAudio, userVideo])
+                this.userStream = new MediaStream([userVideo])
 
                 this.userStream.getTracks().forEach((track) => {
                     this.peerOfferConn.addTrack(track, this.userStream)
