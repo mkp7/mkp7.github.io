@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>P2P PoC</title>
+</head>
+
+<body>
+    <div>
+        <p>offer</p>
+        <input type='text' id='offerAndCandidatesState' readonly />
+        <p>answer</p>
+        <input type='text' id='answerAndCandidatesState' readonly />
+
+        <p>accept offer</p>
+        <input type='text' id='offerAndCandidatesStatePeer' />
+        <button id='acceptOffer'>accept offer</button>
+        <p>accept answer</p>
+        <input type='text' id='answerAndCandidatesStatePeer' />
+        <button id='acceptAnswer'>accept answer</button>
+
+        <br /><br />
+        <video style='border: 1px solid blueviolet' id='peerMedia' autoplay />
+
+    </div>
+    <script>
+        class P2pApp {
+            constructor() {
+                this.peerMedia = new MediaStream()
+
+                const stunUrls = ['stun:alpha.talkyo.me:3478', 'stun:alpha.talkyo.me:5349']
+                const config = {
+                    iceServers: [{ urls: stunUrls }]
+                }
+                this.peerOfferConn = new RTCPeerConnection(config)
+                this.peerAnswerConn = new RTCPeerConnection(config)
+
+                this._offerAndCandidates = this.startup()
+            }
+
+            get offerAndCandidates() {
+                return this._offerAndCandidates
+            }
+
+            async startup() {
+                const userVideo = await this.getUserVideo()
+                this.userStream = new MediaStream([userVideo])
+
+                this.userStream.getTracks().forEach((track) => {
+                    this.peerOfferConn.addTrack(track, this.userStream)
+                })
+                this.peerOfferConn.addEventListener('track', (e) => {
+                    this.peerMedia.addTrack(e.track)
+                    console.log(e.track)
+                })
+
+                this.userStream.getTracks().forEach((track) => {
+                    this.peerAnswerConn.addTrack(track, this.userStream)
+                })
+                this.peerAnswerConn.addEventListener('track', (e) => {
+                    this.peerMedia.addTrack(e.track)
+                    console.log(e.track)
+                })
+
+                // offer and candidates
+                return this.getOfferAndCandidates(this.peerOfferConn, this.userStream)
+            }
+
+            async acceptOffer(data) {
+                const offerAndCandidates = JSON.parse(data)
+                const answerAndCandidates = await this.getAnswerAndCandidates(
+                    this.peerAnswerConn,
+                    offerAndCandidates,
+                    this.userStream
+                )
+
+                return JSON.stringify(answerAndCandidates)
+            }
+
+            async acceptAnswer(data) {
+                const answerAndCandidates = JSON.parse(data)
+                await this.setAnswerAndCandidates(this.peerOfferConn, answerAndCandidates)
+            }
+
+            async getCandidates(peerConn) {
+                const gatherCandidates = new Promise(function (resolve) {
+                    const candidates = []
+                    peerConn.onicecandidate = ({ candidate }) => {
+                        if (candidate) {
+                            candidates.push(candidate)
+                        } else {
+                            resolve(candidates)
+                        }
+                    }
+                })
+
+                return await gatherCandidates
+            }
+
+            async getOfferAndCandidates(peerConn, stream) {
+                // stream.getTracks().forEach((track) => {
+                //   peerConn.addTrack(track, stream)
+                // })
+
+                const candidatesPromise = this.getCandidates(peerConn)
+
+                const offer = await peerConn.createOffer()
+                await peerConn.setLocalDescription(offer)
+                const candidates = await candidatesPromise
+
+                return { offer, candidates }
+            }
+
+            async getAnswerAndCandidates(peerConn, offerAndCandidates, stream) {
+                // stream.getTracks().forEach((track) => {
+                //   peerConn.addTrack(track, stream)
+                // })
+
+                const candidatesPromise = this.getCandidates(peerConn)
+
+                await peerConn.setRemoteDescription(offerAndCandidates.offer)
+                const answer = await peerConn.createAnswer()
+                await peerConn.setLocalDescription(answer)
+                offerAndCandidates.candidates.forEach(candidate => peerConn.addIceCandidate(candidate))
+                const candidates = await candidatesPromise
+
+                return { answer, candidates }
+            }
+
+            async setAnswerAndCandidates(peerConn, answerAndCandidates) {
+                await peerConn.setRemoteDescription(answerAndCandidates.answer)
+                answerAndCandidates.candidates.forEach(candidate => peerConn.addIceCandidate(candidate))
+            }
+
+            async getUserAudio() {
+                try {
+                    const stream = await navigator.mediaDevices
+                        .getUserMedia({ audio: true, video: false })
+
+                    return stream.getAudioTracks()[0]
+                } catch (err) {
+                    console.warn(`Error getUserAudio: ${err.message}`)
+                    return null
+                }
+            }
+
+            async getUserVideo() {
+                try {
+                    const stream = await navigator.mediaDevices
+                        .getUserMedia({ audio: false, video: true })
+
+                    return stream.getVideoTracks()[0]
+                } catch (err) {
+                    console.warn(`Error getUserVideo: ${err.message}`)
+                    return null
+                }
+            }
+        }
+
+        window.addEventListener('load', async function () {
+
+            // controls
+            const offerAndCandidatesStateInput = document.getElementById('offerAndCandidatesState')
+            const answerAndCandidatesStateInput = document.getElementById('answerAndCandidatesState')
+            const offerAndCandidatesStatePeerInput = document.getElementById('offerAndCandidatesStatePeer')
+            const answerAndCandidatesStatePeerInput = document.getElementById('answerAndCandidatesStatePeer')
+            const acceptOfferButton = document.getElementById('acceptOffer')
+            const acceptAnswerButton = document.getElementById('acceptAnswer')
+
+            // output
+            const peerMediaElement = document.getElementById('peerMedia')
+            
+            const p2pApp = new P2pApp()
+            peerMediaElement.srcObject = p2pApp.peerMedia
+
+
+            acceptOfferButton.addEventListener('click', async function () {
+                const offerAndCandidates = offerAndCandidatesStatePeerInput.value
+                const answerAndCandidates = await p2pApp.acceptOffer(offerAndCandidates)
+                answerAndCandidatesStateInput.value = answerAndCandidates
+            })
+
+            acceptAnswerButton.addEventListener('click', async function () {
+                const answerAndCandidates = answerAndCandidatesStatePeerInput.value
+                await p2pApp.acceptAnswer(answerAndCandidates)
+            })
+
+            const offerAndCandidates = await p2pApp.offerAndCandidates
+            console.log(offerAndCandidates)
+            offerAndCandidatesStateInput.value = JSON.stringify(offerAndCandidates)
+        })
+    </script>
+</body>
+
+</html>
