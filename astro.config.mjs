@@ -7,4 +7,10 @@ import sitemap from '@astrojs/sitemap';
 export default defineConfig({
 	site: 'https://mkp7.github.io',
 	integrations: [mdx(), sitemap()],
+	markdown: {
+		shikiConfig: {
+			theme: 'catppuccin-macchiato',
+		},
+	},
+
 });
