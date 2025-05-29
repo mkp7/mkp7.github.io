@@ -23,7 +23,7 @@ export const GLOBAL = {
 	noProjects: "No featured projects yet.",
 
 	// Blog metadata
-	blogTitle: "My Thoughts & Takes",
+	blogTitle: "My thoughts & ideas",
 	// blogShortDescription: "Practical wisdom, unfiltered thoughts, and hot takes.",
 	blogShortDescription:
 		"Programming and software engineering thoughts and ideas.",
@@ -44,6 +44,6 @@ export const GLOBAL = {
 	menu: {
 		home: "/",
 		// projects: "/projects",
-		blog: "/blog",
+		blogs: "/blog",
 	},
 };
