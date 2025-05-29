@@ -5,7 +5,7 @@ import ThemeToggle from "./ThemeToggle.astro";
 ---
 
 <header
-  class="zag-bg border-b border-gray-400 zag-transition sticky top-0 w-full z-10"
+  class="zag-bg border-b border-gray-300 zag-transition sticky top-0 w-full z-10"
 >
   <div
     class="zag-bg zag-transition sm:hidden relative z-50 py-4 flex items-center"
@@ -26,7 +26,7 @@ import ThemeToggle from "./ThemeToggle.astro";
     class="zag-bg zag-border-b zag-transition fixed sm:relative inset-x-0 top-0 h-auto sm:px-4 flex justify-between flex-col gap-8 py-4 text-xl sm:flex-row max-w-4xl mx-auto sm:pt-4 sm:border-none"
   >
     <div
-      class="flex flex-col font-mono font-medium gap-4 sm:flex-row px-4 sm:px-0 mt-16 sm:mt-0"
+      class="flex flex-col font-sans font-medium gap-4 sm:flex-row px-4 sm:px-0 mt-16 sm:mt-0"
     >
       {
         Object.entries(GLOBAL.menu).map((i) => (

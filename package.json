@@ -12,6 +12,8 @@
   },
   "dependencies": {
     "@astrojs/tailwind": "^6.0.2",
+    "@fontsource-variable/jetbrains-mono": "^5.2.5",
+    "@fontsource-variable/public-sans": "^5.2.5",
     "@tailwindcss/typography": "^0.5.16",
     "@tailwindcss/vite": "^4.1.6",
     "astro": "^5.7.13",
@@ -20,6 +22,7 @@
     "typeface-bebas-neue": "^1.1.13"
   },
   "devDependencies": {
+    "@biomejs/biome": "1.9.4",
     "@types/node": "^22.15.18"
   }
 }
